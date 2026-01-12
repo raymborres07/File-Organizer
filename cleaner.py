@@ -1,76 +1,48 @@
 import os
 import shutil
+import argparse
+from datetime import datetime
 
-# --- CONFIGURATION ---
-
-# 1. Get the user's home directory automatically
-# On Windows, this returns "C:\Users\YourName"
-# On Mac/Linux, this returns "/home/username"
+# Get user home
 user_home = os.path.expanduser('~')
+DEFAULT_PATH = os.path.join(user_home, 'Downloads')
 
-# 2. Join it with the "Downloads" folder
-DOWNLOADS_PATH = os.path.join(user_home, 'Downloads')
-
-# 3. Define which extensions go where
-DIRECTORIES = {
-    'Images': ['.jpg', '.jpeg', '.png', '.gif', '.svg', '.bmp', '.tiff', '.ico'],
-    'Documents': ['.pdf', '.docx', '.doc', '.txt', '.pptx', '.ppt', '.xlsx', '.xls', '.csv'],
-    'Installers': ['.exe', '.msi', '.dmg', '.pkg', '.deb', '.iso'],
-    'Archives': ['.zip', '.rar', '.7z', '.tar', '.gz'],
-    'Audio_Video': ['.mp3', '.wav', '.mp4', '.mkv', '.mov', '.avi', '.flv'],
-    'Code': ['.py', '.js', '.html', '.css', '.cpp', '.h', '.m', '.json', '.java']
-}
-
-# --- FUNCTION DEFINITION ---
-
-def clean_folder(path):
-    # Check if path exists
+def organize_by_date(path):
     if not os.path.exists(path):
-        print(f"Error: The path {path} does not exist.")
+        print(f"Path not found: {path}")
         return
-    
-    print(f"Scanning directory: {path}...")
 
-    # Loop through all files in the directory
+    print(f"Sorting by date in: {path}")
+
     for filename in os.listdir(path):
         file_path = os.path.join(path, filename)
 
-        # Skip if it's a directory (we only want to move files)
         if os.path.isdir(file_path):
             continue
 
-        # Get the extension
-        _, extension = os.path.splitext(filename)
+        # Get the modification time
+        timestamp = os.path.getmtime(file_path)
+        date_obj = datetime.fromtimestamp(timestamp)
         
-        # Convert to lowercase to handle .JPG vs .jpg
-        extension = extension.lower()
+        # Format: YYYY-MM (e.g., "2025-12")
+        folder_name = date_obj.strftime('%Y-%m')
 
-        # Check which folder this extension belongs to
-        destination_folder = None
-        for folder_name, extensions_list in DIRECTORIES.items():
-            if extension in extensions_list:
-                destination_folder = folder_name
-                break
+        # Create target folder
+        target_dir = os.path.join(path, folder_name)
+        if not os.path.exists(target_dir):
+            os.makedirs(target_dir)
 
-        # If we found a match, move the file
-        if destination_folder:
-            # Create the sub-folder path
-            target_dir = os.path.join(path, destination_folder)
-            
-            # Create the folder if it doesn't exist yet
-            if not os.path.exists(target_dir):
-                os.makedirs(target_dir)
-                print(f"Created new folder: {destination_folder}")
-
-            # Move the file
-            try:
-                shutil.move(file_path, os.path.join(target_dir, filename))
-                print(f"Moved: {filename} -> {destination_folder}")
-            except Exception as e:
-                print(f"Error moving {filename}: {e}")
-
-# --- EXECUTION ---
+        # Move file
+        try:
+            shutil.move(file_path, os.path.join(target_dir, filename))
+            print(f"Moved {filename} -> {folder_name}")
+        except Exception as e:
+            print(f"Error: {e}")
 
 if __name__ == "__main__":
-    clean_folder(DOWNLOADS_PATH)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('path', nargs='?', default=DEFAULT_PATH)
+    args = parser.parse_args()
+    
+    organize_by_date(args.path)
     print("Done!")
