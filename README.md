@@ -16,21 +16,18 @@ A user-friendly desktop application that automatically organizes your cluttered 
 
 ### Prerequisites
 You need Python installed.
-```bash
 python --version
 
 Usage
-Clone the repository:
-
-Bash
+1. Clone the repository:
 
 git clone [https://github.com/YOUR_USERNAME/file-organizer.git](https://github.com/YOUR_USERNAME/file-organizer.git)
-Run the application:
 
-Bash
+2. Run the application:
 
 python cleaner.py
-A window will appear:
+
+3. A window will appear:
 
 Click "Browse Folder" to select the directory you want to clean (e.g., Downloads or Desktop).
 
