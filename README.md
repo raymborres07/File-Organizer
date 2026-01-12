@@ -49,10 +49,3 @@ DIRECTORIES = {
 }
 📄 License
 This project is open source and available under the MIT License.
-
-
-**Don't forget to push the documentation update:**
-```bash
-git add README.md
-git commit -m "Docs: Updated README for GUI version"
-git push
