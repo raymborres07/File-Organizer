@@ -1,17 +1,9 @@
 import os
 import shutil
+import tkinter as tk
+from tkinter import filedialog, messagebox
 
-# --- CONFIGURATION ---
-
-# 1. Get the user's home directory automatically
-# On Windows, this returns "C:\Users\YourName"
-# On Mac/Linux, this returns "/home/username"
-user_home = os.path.expanduser('~')
-
-# 2. Join it with the "Downloads" folder
-DOWNLOADS_PATH = os.path.join(user_home, 'Downloads')
-
-# 3. Define which extensions go where
+# --- CONFIGURATION (Same as before) ---
 DIRECTORIES = {
     'Images': ['.jpg', '.jpeg', '.png', '.gif', '.svg', '.bmp', '.tiff', '.ico'],
     'Documents': ['.pdf', '.docx', '.doc', '.txt', '.pptx', '.ppt', '.xlsx', '.xls', '.csv'],
@@ -21,56 +13,65 @@ DIRECTORIES = {
     'Code': ['.py', '.js', '.html', '.css', '.cpp', '.h', '.m', '.json', '.java']
 }
 
-# --- FUNCTION DEFINITION ---
-
 def clean_folder(path):
-    # Check if path exists
-    if not os.path.exists(path):
-        print(f"Error: The path {path} does not exist.")
+    if not path:
         return
     
-    print(f"Scanning directory: {path}...")
-
-    # Loop through all files in the directory
+    count = 0
     for filename in os.listdir(path):
         file_path = os.path.join(path, filename)
 
-        # Skip if it's a directory (we only want to move files)
         if os.path.isdir(file_path):
             continue
 
-        # Get the extension
         _, extension = os.path.splitext(filename)
-        
-        # Convert to lowercase to handle .JPG vs .jpg
         extension = extension.lower()
 
-        # Check which folder this extension belongs to
         destination_folder = None
         for folder_name, extensions_list in DIRECTORIES.items():
             if extension in extensions_list:
                 destination_folder = folder_name
                 break
 
-        # If we found a match, move the file
         if destination_folder:
-            # Create the sub-folder path
             target_dir = os.path.join(path, destination_folder)
-            
-            # Create the folder if it doesn't exist yet
             if not os.path.exists(target_dir):
                 os.makedirs(target_dir)
-                print(f"Created new folder: {destination_folder}")
-
-            # Move the file
+            
             try:
                 shutil.move(file_path, os.path.join(target_dir, filename))
-                print(f"Moved: {filename} -> {destination_folder}")
+                count += 1
             except Exception as e:
-                print(f"Error moving {filename}: {e}")
+                print(f"Error: {e}")
+    
+    return count
 
-# --- EXECUTION ---
+# --- GUI LOGIC ---
+def select_folder():
+    path = filedialog.askdirectory()
+    if path:
+        path_label.config(text=f"Selected: {path}")
+        run_button.config(state="normal", command=lambda: execute_clean(path))
 
+def execute_clean(path):
+    moved_files = clean_folder(path)
+    messagebox.showinfo("Success", f"Done! Organized {moved_files} files.")
+
+# --- MAIN WINDOW ---
 if __name__ == "__main__":
-    clean_folder(DOWNLOADS_PATH)
-    print("Done!")
+    root = tk.Tk()
+    root.title("File Organizer Pro")
+    root.geometry("400x200")
+
+    tk.Label(root, text="Select a folder to organize:", font=("Arial", 12)).pack(pady=10)
+    
+    path_label = tk.Label(root, text="No folder selected", fg="gray")
+    path_label.pack(pady=5)
+
+    btn_browse = tk.Button(root, text="Browse Folder", command=select_folder)
+    btn_browse.pack(pady=5)
+
+    run_button = tk.Button(root, text="Start Cleaning", state="disabled", bg="#4CAF50", fg="white")
+    run_button.pack(pady=20)
+
+    root.mainloop()
